@@ -1,11 +1,15 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Timer = void 0;
-class Timer {
+const events_1 = require("events");
+class Timer extends events_1.EventEmitter {
     constructor(timestamp, options) {
-        if (!timestamp || typeof timestamp !== 'number')
+        super();
+        if (!timestamp)
             throw new TypeError('[PARAMETER_ERROR] The hour parameter is required.');
+        const t = new Date(timestamp);
         this.timestamp = timestamp;
+        this.actions = options?.actions;
         this._check();
         setInterval(this._check, 1800000);
     }
@@ -13,7 +17,14 @@ class Timer {
         const newTimestamp = Date.now();
         const diff = this.timestamp - newTimestamp;
         if (diff < 1800000) {
-            setTimeout(() => console.log(new Date()), diff);
+            setTimeout(() => {
+                if (this.actions?.event) {
+                    this.emit(this.actions.event);
+                }
+                if (this.actions?.function) {
+                    this.actions.function();
+                }
+            }, diff);
         }
     }
 }
